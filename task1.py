@@ -1,8 +1,19 @@
 import os
-import sys
 import shutil
 from concurrent.futures import ThreadPoolExecutor
 import argparse
+import time
+from functools import wraps
+
+def timer(fnc):
+    @wraps(fnc)
+    def wrapper(*args,**kwargs):
+        t0 = time.perf_counter()
+        res=fnc(*args, **kwargs)
+        t1 = time.perf_counter()
+        print(t1-t0)
+        return res
+    return wrapper
 
 def get_extension(file_path: str) -> str:
     # Визначає розширення файлу та очищає його від крапки перед використанням як назви папки.
@@ -12,10 +23,9 @@ def get_extension(file_path: str) -> str:
 
 
 def copy_file_worker(source_path: str, target_root: str):
-    """
-    Воркер функція, яка виконує копіювання одного файлу в його відповідний розширенням підкаталог.
-    Ця функція призначена для паралельного виконання (Executor).
-    """
+    
+    # Воркер функція, яка виконує копіювання одного файлу в його відповідний підкаталог.
+    
     try:
         extension = get_extension(source_path)
         target_dir = os.path.join(target_root, extension)
@@ -37,17 +47,17 @@ def process_directory(source_dir: str, target_root: str, max_workers: int = 10):
     """
     print("-" * 50)
     print(f"Початок обробки директорії.")
-    print(f"Джерело: {os.path.abspath(source_dir)}")
-    print(f"Призначення: {os.path.abspath(target_root)}")
+    print(f"Вихідна папка: {os.path.abspath(source_dir)}")
+    print(f"Папка призначення: {os.path.abspath(target_root)}")
     print("-" * 50)
 
     # Перевірка існуючих директорій
     if not os.path.isdir(source_dir):
-        print(f"\n Джерельна директорія не існує чи не є каталогом: {source_dir}")
+        print(f"\n Вихідна директорія не існує чи не є каталогом: {source_dir}")
         return
 
     if os.path.exists(target_root):
-        print(f"Обережно: Цільна директорія '{target_root}' вже існує.")
+        print(f"Обережно: Цільова директорія '{target_root}' вже існує.")
 
     # Збір усіх файлів для обробки
     files_to_process = []
@@ -68,10 +78,10 @@ def process_directory(source_dir: str, target_root: str, max_workers: int = 10):
     results = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Створення завдань
-        futures = [executor.submit(copy_file_worker, file_path, target_root) for file_path in files_to_process]
+        features = [executor.submit(copy_file_worker, file_path, target_root) for file_path in files_to_process]
 
-        for future in futures:
-            results.append(future.result())
+        for feature in features:
+            results.append(feature.result())
 
 
     print("\n" + "=" * 60)
@@ -79,11 +89,11 @@ def process_directory(source_dir: str, target_root: str, max_workers: int = 10):
     print("Успішно!")
     print("=" * 60)
 
-
+@timer
 def main():
    
     parser = argparse.ArgumentParser(
-        description="Копіює всі файли з джерельної директорії (і піддиректорій) до цільової, сортуючи їх за розширенням у окремі папки.",
+        description="Копіює всі файли з джерельної директорії (i піддиректорій) до цільової, сортуючи їх за розширенням y окремі папки.",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
@@ -95,7 +105,7 @@ def main():
         default="dist", 
         help="Цільова директорія, де будуть розміщені відсортовані файли. За замовчуванням: 'dist'."
     )
-    # Параметр для контролю паралелізму
+    # Параметр для кількості потоків
     parser.add_argument(
         "--workers", 
         type=int, 
