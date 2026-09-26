@@ -21,7 +21,7 @@ def factorize_worker(num: int):
 def factorize_mp(*number):
     with Pool(cpu_count()) as pool:
         factors = pool.map(factorize_worker,number)
-        return factors
+    return factors
         
 
 @perftimer
