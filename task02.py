@@ -15,12 +15,12 @@ def perftimer(fnc):
 
 
 def factorize_worker(num: int):
-    return [x for x in range(1, num+1) if num%x == 0]
+    return [x for x in range(1, num+1) if num % x == 0]
 
-
+@perftimer
 def factorize_mp(*number):
     with Pool(cpu_count()) as pool:
-        factors = pool.map(factorize_worker,number)
+        factors = pool.map(factorize_worker, number)
     return factors
         
 
@@ -28,13 +28,11 @@ def factorize_mp(*number):
 def factorize(*number):
     factors = []
     for num in number:
-        factors.append ([x for x in range(1,num+1) if num%x == 0])
+        factors.append([x for x in range(1,num+1) if num%x == 0])
     return factors
     
 
-
-a, b, c, d = factorize_mp(128, 255, 99999, 10651060)
-# e = factorize_s(12345679)
-# print(a, b, c)
-
-# print(e)
+if __name__ == "__main__":
+    a , b, c , d = factorize_mp(128, 255, 99999, 123456789)
+    e , f , g, h = factorize(128, 255,9999, 123456789)
+    
