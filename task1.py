@@ -5,13 +5,13 @@ import argparse
 import time
 from functools import wraps
 
-def timer(fnc):
+def perftimer(fnc):
     @wraps(fnc)
     def wrapper(*args,**kwargs):
         t0 = time.perf_counter()
         res=fnc(*args, **kwargs)
         t1 = time.perf_counter()
-        print(t1-t0)
+        print(f"Done by {t1-t0:.4f} seconds")
         return res
     return wrapper
 
@@ -89,7 +89,7 @@ def process_directory(source_dir: str, target_root: str, max_workers: int = 10):
     print("Успішно!")
     print("=" * 60)
 
-@timer
+@perftimer
 def main():
    
     parser = argparse.ArgumentParser(
