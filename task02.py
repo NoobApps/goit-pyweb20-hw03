@@ -9,7 +9,7 @@ def perftimer(fnc):
         t0 = time.perf_counter()
         res = fnc(*args, **kwargs)
         t1 = time.perf_counter()
-        print(f'{fnc.__name__} function work hard for {t1-t0:.3f} seconds')
+        print(f'{fnc.__name__} function work hard for {t1-t0:.5f} seconds')
         return res
     return wrapper
 
@@ -19,10 +19,9 @@ def factorize_worker(num: int):
 
 @perftimer
 def factorize_mp(*number):
-    with Pool(cpu_count()) as pool:
+    with Pool(processes=cpu_count()) as pool:
         factors = pool.map(factorize_worker, number)
     return factors
-        
 
 @perftimer
 def factorize(*number):
@@ -30,9 +29,9 @@ def factorize(*number):
     for num in number:
         factors.append([x for x in range(1,num+1) if num%x == 0])
     return factors
-    
+
 
 if __name__ == "__main__":
-    a , b, c , d = factorize_mp(128, 255, 99999, 123456789)
-    e , f , g, h = factorize(128, 255,9999, 123456789)
     
+    factorize(10_281_227, 10_281_227, 10_281_227,  10_233_444, 9_999_999)
+    factorize_mp(10_281_227, 10_281_227, 10_281_227, 10_233_444, 9_999_999)
