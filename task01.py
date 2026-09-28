@@ -21,6 +21,14 @@ def get_extension(file_path: str) -> str:
     _, ext = os.path.splitext(file_path)
     return ext[1:].lower() if ext else "no_extension"
 
+def worker_subdir(start_dir: str) :
+    local_files = []
+    print('thread starts')
+    for root, _, files in os.walk(start_dir):
+        for file in files:
+            full_path = os.path.join(root, file)
+            local_files.append(full_path)
+        return local_files
 
 def copy_file_worker(source_path: str, target_root: str):
     
@@ -62,7 +70,12 @@ def process_directory(source_dir: str, target_root: str, max_workers: int = 10):
     # Збір усіх файлів для обробки
     files_to_process = []
     print("Сканування директорії та збір шляхів...")
-    for root, _, files in os.walk(source_dir):
+    for root, subdirs, files in os.walk(source_dir):
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            paths = [pool.submit(worker_subdir, subdir) for subdir in subdirs]
+            for path in paths:
+                files_to_process.append(path)
+
         for file in files:
             full_path = os.path.join(root, file)
             files_to_process.append(full_path)
