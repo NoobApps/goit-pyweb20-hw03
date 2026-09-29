@@ -23,11 +23,12 @@ def get_extension(file_path: str) -> str:
 
 def worker_subdir(start_dir: str) :
     subdir_files = []
-    print(f'{start_dir} thread starts')
-    for root, subdir, files in os.walk(start_dir):
-        for file in files:
-            full_path = os.path.join(root, file)
-            subdir_files.append(full_path)
+    for item in os.listdir(start_dir):
+        item_path = os.path.join(start_dir, item)
+        if os.path.isfile(item_path):
+            subdir_files.append(item_path)
+        elif os.path.isdir(item_path):
+            subdir_files.extend(worker_subdir(item_path))
     return subdir_files
 
 def copy_file_worker(source_path: str, target_root: str):
