@@ -22,13 +22,13 @@ def get_extension(file_path: str) -> str:
     return ext[1:].lower() if ext else "no_extension"
 
 def worker_subdir(start_dir: str) :
-    local_files = []
-    print('thread starts')
-    for root, _, files in os.walk(start_dir):
+    subdir_files = []
+    print(f'{start_dir} thread starts')
+    for root, subdir, files in os.walk(start_dir):
         for file in files:
             full_path = os.path.join(root, file)
-            local_files.append(full_path)
-        return local_files
+            subdir_files.append(full_path)
+    return subdir_files
 
 def copy_file_worker(source_path: str, target_root: str):
     
@@ -70,16 +70,17 @@ def process_directory(source_dir: str, target_root: str, max_workers: int = 10):
     # Збір усіх файлів для обробки
     files_to_process = []
     print("Сканування директорії та збір шляхів...")
-    for root, subdirs, files in os.walk(source_dir):
-        with ThreadPoolExecutor(max_workers=max_workers) as pool:
-            paths = [pool.submit(worker_subdir, subdir) for subdir in subdirs]
-            for path in paths:
-                files_to_process.append(path)
-
-        for file in files:
-            full_path = os.path.join(root, file)
-            files_to_process.append(full_path)
-
+    for item in os.listdir(source_dir):
+        item_path = os.path.join(source_dir, item)
+        if os.path.isfile(item_path):
+            files_to_process.append(item_path)
+        elif os.path.isdir(item_path):
+            with ThreadPoolExecutor(max_workers=max_workers) as pool:
+                path = pool.submit(worker_subdir, item_path)
+                for p in path.result():
+                    files_to_process.append(p)
+        
+       
     if not files_to_process:
         print(f"He знайдено файлів для копіювання.")
         return
